@@ -1,0 +1,18 @@
+.env
+pdf-export/
+slack-to-llm/
+exports/
+toon/
+channels.yaml
+node_modules/
+
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv

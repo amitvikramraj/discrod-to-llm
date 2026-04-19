@@ -1,0 +1,31 @@
+[project]
+name = "discord-export"
+version = "0.1.0"
+description = "Export Discord messages into TOON format for LLM context"
+readme = "README.md"
+authors = [
+    { name = "Amit Vikram Raj", email = "avr13405@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "pyyaml>=6.0.3",
+    "toon-format",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+]
+
+[build-system]
+requires = ["uv_build>=0.9.27,<0.10.0"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+addopts = "-m 'not slow'"
+markers = [
+    "slow: tests that require network access and Discord auth",
+]
+
+[tool.uv.sources]
+toon-format = { git = "https://github.com/toon-format/toon-python.git" }

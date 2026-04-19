@@ -1,0 +1,18 @@
+guild: zenml
+guild_id: "621988642553987082"
+
+channels:
+  - id: "8972293478392"
+    name: core-team
+  - id: "2354234234234"
+    name: internal-team
+  - id: "23423423423"
+    name: internal-tech
+  - id: "2423423423"
+    name: bugs
+  - id: "42342342342"
+    name: security
+  - id: "43534534534"
+    name: sre-alerts
+  - id: "353453453453"
+    name: general

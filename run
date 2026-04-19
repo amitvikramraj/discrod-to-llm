@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+CONFIG="./channels.yaml"
+EXPORT_DIR="./exports"
+TOON_DIR="./toon"
+
+read_config() {
+    uv run python -c "
+import yaml
+with open('$CONFIG') as f:
+    config = yaml.safe_load(f)
+$1
+"
+}
+
+export_discord() {
+    local after_date="${1:-2025-05-31}"
+    source "${SCRIPT_DIR}/.env"
+
+    CHANNEL_IDS=$(read_config "
+ids = [ch['id'] for ch in config.get('channels', [])]
+print(' '.join(ids))
+")
+
+    if [[ -z "$CHANNEL_IDS" ]]; then
+        echo "Error: no channels configured in $CONFIG" >&2
+        exit 1
+    fi
+
+    local channel_args=()
+    for cid in $CHANNEL_IDS; do
+        channel_args+=(-c "$cid")
+    done
+
+    echo "--- Export: DiscordChatExporter ---"
+    echo "Channels: $CHANNEL_IDS"
+    echo "After: $after_date"
+    mkdir -p "$EXPORT_DIR"
+
+    docker run --rm -it \
+        -v "$(pwd)/${EXPORT_DIR}:/out" \
+        tyrrrz/discordchatexporter export \
+        -t "$TOKEN" \
+        "${channel_args[@]}" \
+        --after "$after_date" \
+        -f Json \
+        -o /out
+}
+
+convert() {
+    if [[ ! -f "$CONFIG" ]]; then
+        echo "Error: channels.yaml not found. Copy channels.example.yaml to channels.yaml and edit it." >&2
+        exit 1
+    fi
+
+    echo "--- Convert: JSON -> TOON ---"
+    uv run python -m discord_export.convert \
+        --export-dir "$EXPORT_DIR" \
+        --output-dir "$TOON_DIR" \
+        --config "$CONFIG"
+    echo ""
+    echo "TOON files written to $TOON_DIR/"
+    ls -la "$TOON_DIR/"
+}
+
+sync() {
+    export_discord
+    echo ""
+    convert
+}
+
+pdf() {
+    local input="${1:?Usage: ./run pdf <input.html> [output.pdf]}"
+    local output="${2:-}"
+
+    if [[ ! -d pdf-export/node_modules ]]; then
+        echo "--- Installing pdf-export dependencies ---"
+        (cd pdf-export && npm install)
+    fi
+
+    echo "--- Converting HTML to PDF ---"
+    if [[ -n "$output" ]]; then
+        node pdf-export/html-to-pdf.mjs "$input" "$output"
+    else
+        node pdf-export/html-to-pdf.mjs "$input"
+    fi
+}
+
+help() {
+    echo "$0 <task>"
+    echo "Tasks:"
+    echo "  export_discord [AFTER_DATE]  Export Discord channels to JSON via Docker (default: 2025-05-31)"
+    echo "  convert                      Convert JSON exports to TOON format"
+    echo "  sync                         Run export + convert"
+    echo "  pdf <input.html> [out.pdf]   Convert HTML report to PDF"
+}
+
+TIMEFORMAT="Task completed in %3lR"
+time ${@:-help}
