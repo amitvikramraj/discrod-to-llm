@@ -1,6 +1,6 @@
 # Discord to LLM
 
-> Similar to [slack-to-llm](https://github.com/amitvikramraj/slack-to-llm) but for Discord.
+> Similar to [slack-to-llm](https://github.com/phitoduck/slack-to-llm) but for Discord.
 
 
 Export Discord messages into **TOON** format — a flat, tabular text format designed to be fed directly into an LLM as project context.
