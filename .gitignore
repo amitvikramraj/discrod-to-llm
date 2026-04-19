@@ -1,5 +1,7 @@
+.DS_Store
 .env
-pdf-export/
+pdf-export/node_modules/
+pdf-export/reports/
 slack-to-llm/
 exports/
 toon/
